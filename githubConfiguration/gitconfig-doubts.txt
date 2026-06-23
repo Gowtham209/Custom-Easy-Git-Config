@@ -1,0 +1,144 @@
+That's actually a useful clue.
+
+From the output shown, Git is loading only:
+
+```text
+file:C:/Users/gowth_i9oehi3/.gitconfig user.email=gowthamts29@gmail.com
+file:C:/Users/gowth_i9oehi3/.gitconfig user.name=Gowtham209
+```
+
+and one conditional include:
+
+```text
+includeif.gitdir/i:G:/StartUp/Insight.Engine/.path=C:/Users/gowth_i9oehi3/.gitconfig-core
+```
+
+But there is **no reference at all** to:
+
+```text
+.gitconfig-haily-mary
+```
+
+or
+
+```text
+user.name=npva-engine-core
+```
+
+which means Git never loaded that file.
+
+## Why?
+
+Looking at your screenshots, I see:
+
+### Existing working config
+
+Your global `.gitconfig` contains:
+
+```ini
+[includeIf "gitdir/i:G:/StartUp/Insight.Engine/"]
+    path = C:/Users/gowth_i9oehi3/.gitconfig-core
+```
+
+This works because:
+
+1. The path is absolute.
+2. The repo is inside `G:/StartUp/Insight.Engine/`.
+3. The pattern ends with `/`.
+
+---
+
+### Hail Mary config
+
+You created:
+
+```ini
+[includeIf "gitdir:G:/Project Hail Mary"]
+    path = G:/Project Hail Mary/.gitconfig-haily-mary
+```
+
+Potential issues:
+
+#### Issue 1: Missing trailing slash
+
+Git expects:
+
+```ini
+[includeIf "gitdir/i:G:/Project Hail Mary/"]
+```
+
+not
+
+```ini
+[includeIf "gitdir:G:/Project Hail Mary"]
+```
+
+#### Issue 2: Wrong location of file
+
+Your Explorer shows:
+
+```text
+Project Hail Mary
+└── githubConfiguration
+    ├── .gitconfig
+    └── .gitconfig-haily-mary
+```
+
+But your include path says:
+
+```ini
+path = G:/Project Hail Mary/.gitconfig-haily-mary
+```
+
+Git will look for:
+
+```text
+G:\Project Hail Mary\.gitconfig-haily-mary
+```
+
+while the file actually appears to be:
+
+```text
+G:\Project Hail Mary\githubConfiguration\.gitconfig-haily-mary
+```
+
+Those are different locations.
+
+---
+
+## More importantly
+
+Conditional includes belong in your **global** config:
+
+```text
+C:\Users\gowth_i9oehi3\.gitconfig
+```
+
+not inside the project folder.
+
+Add this to your global `.gitconfig`:
+
+```ini
+[includeIf "gitdir/i:G:/Project Hail Mary/"]
+    path = G:/Project Hail Mary/githubConfiguration/.gitconfig-haily-mary
+```
+
+---
+
+## Verify the repository path
+
+Inside the Hail Mary repo run:
+
+```powershell
+git rev-parse --show-toplevel
+```
+
+Tell me the output.
+
+If it returns something like:
+
+```text
+G:/Project Hail Mary
+```
+
+I'll give you the exact `includeIf` entry that will match that repository. The match must correspond to the **actual Git repository root**, not just the folder where you stored the config file.
